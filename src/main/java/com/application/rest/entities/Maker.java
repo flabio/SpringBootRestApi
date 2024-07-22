@@ -7,11 +7,10 @@ import lombok.*;
 import java.util.ArrayList;
 import java.util.List;
 
-@Setter
-@Getter
-@Builder
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 @Entity
 @Table(name="fabricante")
 public class Maker {

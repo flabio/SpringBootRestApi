@@ -1,9 +1,6 @@
 package com.application.rest.controllers.dto;
 
 import com.application.rest.entities.Maker;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -18,6 +15,7 @@ import java.math.BigDecimal;
 public class ProductDTO {
     private  Long id;
     private String name;
+    private String nameMaker;
     private BigDecimal price;
     private Maker maker;
 }

@@ -2,6 +2,7 @@ package com.application.rest.controllers;
 
 import com.application.rest.controllers.dto.MakerDTO;
 import com.application.rest.entities.Maker;
+import com.application.rest.mapper.MakerMapper;
 import com.application.rest.service.IMakerService;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,19 +17,18 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/maker")
 public class MakerController {
-    @Autowired
-    private IMakerService makerService;
 
+    private IMakerService makerService;
+    private MakerMapper makerMapper;
+    @Autowired
+    public MakerController(IMakerService makerService,MakerMapper makerMapper){
+
+        this.makerService=makerService;
+        this.makerMapper=makerMapper;
+    }
     @GetMapping("/all")
     public ResponseEntity<?> findAll(){
-        List<MakerDTO> makerDTOList = makerService.findAll().stream()
-                .map(
-                        maker -> MakerDTO.builder()
-                                .id(maker.getId())
-                                .name(maker.getName())
-                                .productList(maker.getProductList())
-                                .build()
-                ).toList();
+        List<MakerDTO> makerDTOList = makerMapper.toMakerDTOList(makerService.findAll());
         return ResponseEntity.ok(makerDTOList);
     }
     @GetMapping("/find/{id}")

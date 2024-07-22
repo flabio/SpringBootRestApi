@@ -2,6 +2,7 @@ package com.application.rest.controllers;
 
 import com.application.rest.controllers.dto.ProductDTO;
 import com.application.rest.entities.Product;
+import com.application.rest.mapper.ProductMapper;
 import com.application.rest.service.IProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -15,20 +16,18 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/product")
 public class ProductController {
-    @Autowired
+
     private IProductService productService;
+    private ProductMapper productMapper;
+    @Autowired
+    public ProductController(IProductService productService,ProductMapper productMapper){
+        this.productService=productService;
+        this.productMapper=productMapper;
+    }
 
     @GetMapping("/findAll")
     public ResponseEntity<?> findAll(){
-        List<ProductDTO> productDTOList = productService.findAll()
-                .stream()
-                .map(product -> ProductDTO.builder()
-                        .id(product.getId())
-                        .name(product.getName())
-                        .price(product.getPrice())
-                        .maker(product.getMaker())
-                        .build()
-                ).toList();
+        List<ProductDTO> productDTOList = productMapper.toProductDTOList(productService.findAll());
         return ResponseEntity.ok(productDTOList);
     }
     @GetMapping("/findById/{id}")
@@ -36,12 +35,7 @@ public class ProductController {
         Optional<Product> productOptional = productService.findById(id);
         if(productOptional.isPresent()){
             Product product =productOptional.get();
-            ProductDTO productDTO = ProductDTO.builder()
-                    .id(product.getId())
-                    .name(product.getName())
-                    .price(product.getPrice())
-                    .maker(product.getMaker())
-                    .build();
+            ProductDTO productDTO = productMapper.productToProductDTO(product);
             return ResponseEntity.ok(productDTO);
         }
         return ResponseEntity.badRequest().build();
@@ -51,28 +45,26 @@ public class ProductController {
         if(productDTO.getName().isBlank() || productDTO.getPrice()==null||productDTO.getMaker()==null ){
             return ResponseEntity.badRequest().build();
         }
-        Product product =Product.builder()
-                .name(productDTO.getName())
-                .price(productDTO.getPrice())
-                .maker(productDTO.getMaker())
-                .build();
+        Product product = productMapper.toEntity(productDTO);
         productService.save(product);
         return ResponseEntity.created(new URI("/api/product/save")).build();
     }
     @PutMapping("/update/{id}")
     public ResponseEntity<?> update(@PathVariable Long id,@RequestBody ProductDTO productDTO){
-        Optional<Product> productOptional=productService.findById(id);
+        Optional<Product> productOptional= productService.findById(id).map(
+                product -> productMapper.toEntity(productDTO)
+        );
         if(productOptional.isPresent()){
-            Product product = productOptional.get();
-            product.setName(productDTO.getName());
-            product.setPrice(productDTO.getPrice());
-            product.setMaker(productDTO.getMaker());
+
+            Product product =productOptional.get();
+
             productService.save(product);
             return ResponseEntity.ok("Registro Actualizado");
         }
         return ResponseEntity.notFound().build();
     }
 
+    @DeleteMapping("/delete/{id}")
     public ResponseEntity<?> deleteById(@PathVariable Long id){
         if(id!=null){
             productService.deleteById(id);
